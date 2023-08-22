@@ -64,15 +64,71 @@ void render_rope_nodes(struct RopeNode *node) {
 }
 
 void draw_rectangle(Vector2 v1, Vector2 v2, float height, Color color) {
-    Vector2 t1v1 = { v2.x + 5, v1.y + height/2 };
+    Vector2 pivot1 = v1;
+
+    Vector2 translation1 = {-pivot1.x, -pivot1.y};
+
+    float dx = v2.x - v1.x;
+    float dy = v2.y - v1.y;
+    float distance = sqrtf((dx*dx) + (dy*dy));
+    float angleBetweenPoints = atan2f(v2.y - v1.y, v2.x - v1.x)*(180.0f/M_PI);
+
+    Vector2 t1v1 = { (v1.x + distance) + 5, v1.y + height/2 };
     Vector2 t1v2 = { v1.x - 5, v1.y - height/2 };
     Vector2 t1v3 = { v1.x - 5, v1.y + height/2 };
 
-    Vector2 t2v1 = { v1.x - 5, v2.y - height/2 };
-    Vector2 t2v2 = { v2.x + 5, v2.y + height/2 };
-    Vector2 t2v3 = { v2.x + 5, v2.y - height/2 };
+    /* Vector2 t2v1 = { v1.x - 5, v1.y - height/2 }; */
+    /* Vector2 t2v2 = { (v1.x + distance) + 5, v1.y + height/2 }; */
+    /* Vector2 t2v3 = { (v1.x + distance) + 5, v1.y - height/2 }; */
 
-    DrawTriangle(t1v1, t1v2, t1v3, color);
+    Vector2 vertices1[] = {
+        t1v1,
+        t1v2,
+        t1v3
+    };
+    /* Vector2 vertices2[] = { */
+    /*     t2v1, */
+    /*     t2v2, */
+    /*     t2v3 */
+    /* }; */
+
+    for (int i = 0; i < 3; ++i) {
+        float x = vertices1[i].x + translation1.x;
+        float y = vertices1[i].y + translation1.y;
+
+        vertices1[i].x = x*cosf(angleBetweenPoints*DEG2RAD) - y*sinf(angleBetweenPoints*DEG2RAD);
+        vertices1[i].y = x*sinf(angleBetweenPoints*DEG2RAD) + y*(cosf(angleBetweenPoints*DEG2RAD));
+    }
+
+    translation1.x = pivot1.x;
+    translation1.y = pivot1.y;
+
+    for (int i = 0; i < 3; ++i) {
+        vertices1[i].x += translation1.x;
+        vertices1[i].y += translation1.y;
+    }
+
+    Vector2 t2v1 = vertices1[0];
+    Vector2 t2v2 = vertices1[1];
+    Vector2 t2v3 = vertices1[2];
+
+    /* for (int i = 0; i < 3; ++i) { */
+    /*     float x = vertices2[i].x + translation2.x; */
+    /*     float y = vertices2[i].y + translation2.y; */
+
+    /*     vertices2[i].x = x*cosf(angleBetweenPoints*DEG2RAD) - y*sinf(angleBetweenPoints*DEG2RAD); */
+    /*     vertices2[i].y = x*sinf(angleBetweenPoints*DEG2RAD) + y*(cosf(angleBetweenPoints*DEG2RAD)); */
+    /* } */
+
+    /* translation2.x = pivot2.x; */
+    /* translation2.y = pivot2.y; */
+
+    /* for (int i = 0; i < 3; ++i) { */
+    /*     vertices2[i].x += translation2.x; */
+    /*     vertices2[i].y += translation2.y; */
+    /* } */
+
+    /* DrawTriangle(vertices1[0], vertices1[1], vertices1[2], color); */
     DrawTriangle(t2v1, t2v2, t2v3, color);
 }
 
@@ -85,12 +141,18 @@ int main() {
         BeginDrawing();
         ClearBackground(BLACK);
 
+        Vector2 test1 = { 200, 200 };
+        Vector2 test2 = { 300, 600 };
+
         draw_rectangle(
-            (Vector2){ 400, 400 },
-            (Vector2){ 800, 400 },
+            test1,
+            test2,
             30,
             WHITE
         );
+
+        DrawCircle(test1.x, test1.y, 20, RED);
+        DrawCircle(test2.x, test2.y, 20, RED);
 
         /* if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) { */
         /*     Vector2 mousePosition = GetMousePosition(); */
