@@ -44,7 +44,10 @@ float angle_between_adjacent_nodes(struct RopeNode *node) {
 
 void draw_rectangle(Vector2 v1, Vector2 v2, float height, Color color) {
     Vector2 pivot = v1;
-    Vector2 translation = {-pivot.x, -pivot.y};
+    Vector2 pivot2 = v2;
+
+    Vector2 translation = { -pivot.x, -pivot.y };
+    Vector2 translation2 = { -pivot2.x, -pivot2.y };
 
     float dx = v2.x - v1.x;
     float dy = v2.y - v1.y;
@@ -65,7 +68,7 @@ void draw_rectangle(Vector2 v1, Vector2 v2, float height, Color color) {
         float x = vertices[i].x + translation.x;
         float y = vertices[i].y + translation.y;
 
-        vertices[i].x = x*cosf(angleBetweenPoints*DEG2RAD) - y*sinf(angleBetweenPoints*DEG2RAD);
+        vertices[i].x = x*cosf(angleBetweenPoints*DEG2RAD) - y*(sinf(angleBetweenPoints*DEG2RAD));
         vertices[i].y = x*sinf(angleBetweenPoints*DEG2RAD) + y*(cosf(angleBetweenPoints*DEG2RAD));
     }
 
@@ -79,8 +82,19 @@ void draw_rectangle(Vector2 v1, Vector2 v2, float height, Color color) {
 
     Vector2 t2v1 = vertices[1];
     Vector2 t2v2 = vertices[0];
-    // erro está na soma na altura
-    Vector2 t2v3 = { vertices[0].x + height, vertices[0].y };
+    Vector2 t2v3 = { v2.x + 5, v2.y - height/2 };
+
+    float tx = t2v3.x + translation2.x;
+    float ty = t2v3.y + translation2.y;
+
+    t2v3.x = tx*cosf(angleBetweenPoints*DEG2RAD) - ty*sinf((angleBetweenPoints*DEG2RAD));
+    t2v3.y = tx*sinf(angleBetweenPoints*DEG2RAD) + ty*(cosf(angleBetweenPoints*DEG2RAD));
+
+    translation2.x = pivot2.x;
+    translation2.y = pivot2.y;
+
+    t2v3.x += translation2.x;
+    t2v3.y += translation2.y;
 
     DrawTriangle(vertices[0], vertices[1], vertices[2], color);
     DrawTriangle(t2v1, t2v2, t2v3, color);
@@ -98,17 +112,9 @@ void render_rope_nodes(struct RopeNode *node) {
                 30,
                 WHITE
             );
-            /* draw_rectangle(Vector2 v1, Vector2 v2, float height, Color color) */
-
-            /* DrawRectanglePro( */
-            /*     rec, */
-            /*     (Vector2){ 0, 0 }, */
-            /*     angleRot, */
-            /*     WHITE */
-            /* ); */
         }
 
-        /* DrawCircle(node->x, node->y, 20, RED); */
+        DrawCircle(node->x, node->y, 20, RED);
 
         node = node->nextNode;
     }
@@ -122,16 +128,6 @@ int main() {
     while(!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(BLACK);
-
-        /* Vector2 test1 = { 200, 200 }; */
-        /* Vector2 test2 = { 300, 600 }; */
-
-        /* draw_rectangle( */
-        /*     test1, */
-        /*     test2, */
-        /*     30, */
-        /*     WHITE */
-        /* ); */
 
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             Vector2 mousePosition = GetMousePosition();
