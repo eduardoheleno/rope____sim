@@ -21,6 +21,18 @@ struct RopeNode *get_last_rope_node(struct RopeNode *node) {
     return nodeBuffer;
 }
 
+void clear_nodes(struct RopeNode *node) {
+    struct RopeNode *nodeBuffer = node;
+    struct RopeNode *nextNodeBuffer = NULL;
+
+    while (nodeBuffer != NULL) {
+        nextNodeBuffer = nodeBuffer->nextNode;
+        free(nodeBuffer);
+
+        nodeBuffer = nextNodeBuffer;
+    }
+}
+
 void print_list(struct RopeNode *firstNode) {
     system("clear");
     struct RopeNode *nodeBuffer = firstNode;
@@ -64,8 +76,12 @@ void render_rope_nodes(struct RopeNode *node) {
     }
 }
 
+const int WINDOW_WIDTH = 1200;
+const int WINDOW_HEIGHT = 800;
+const char WINDOW_TITLE[] = "Rope simulation";
+
 int main() {
-    InitWindow(1200, 800, "Rope simulation");
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
 
     struct RopeNode *firstNode = NULL;
 
@@ -73,7 +89,7 @@ int main() {
         BeginDrawing();
         ClearBackground(BLACK);
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
             Vector2 mousePosition = GetMousePosition();
 
             if (firstNode == NULL) {
@@ -100,10 +116,19 @@ int main() {
             }
         }
 
+        if (IsKeyPressed(KEY_C)) {
+            clear_nodes(firstNode);
+            firstNode = NULL;
+        }
+
         render_rope_nodes(firstNode);
 
         EndDrawing();
     }
+
+    free(firstNode);
+
+    CloseWindow();
 
     return 0;
 }

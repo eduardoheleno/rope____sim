@@ -2,6 +2,8 @@
 #include <math.h>
 
 void draw_rectangle(Vector2 v1, Vector2 v2, float height, Color color) {
+    const int DISTANCE_FROM_ORIGIN = 5;
+
     Vector2 pivot = v1;
     Vector2 pivot2 = v2;
 
@@ -13,9 +15,9 @@ void draw_rectangle(Vector2 v1, Vector2 v2, float height, Color color) {
     float distance = sqrtf((dx*dx) + (dy*dy));
     float angleBetweenPoints = atan2f(v2.y - v1.y, v2.x - v1.x)*(180.0f/M_PI);
 
-    Vector2 t1v1 = { (v1.x + distance) + 5, v1.y + height/2 };
-    Vector2 t1v2 = { v1.x - 5, v1.y - height/2 };
-    Vector2 t1v3 = { v1.x - 5, v1.y + height/2 };
+    Vector2 t1v1 = { (v1.x + distance) + DISTANCE_FROM_ORIGIN, v1.y + height/2 };
+    Vector2 t1v2 = { v1.x - DISTANCE_FROM_ORIGIN, v1.y - height/2 };
+    Vector2 t1v3 = { v1.x - DISTANCE_FROM_ORIGIN, v1.y + height/2 };
 
     Vector2 vertices[] = {
         t1v1,
@@ -41,7 +43,7 @@ void draw_rectangle(Vector2 v1, Vector2 v2, float height, Color color) {
 
     Vector2 t2v1 = vertices[1];
     Vector2 t2v2 = vertices[0];
-    Vector2 t2v3 = { v2.x + 5, v2.y - height/2 };
+    Vector2 t2v3 = { v2.x + DISTANCE_FROM_ORIGIN, v2.y - height/2 };
 
     float tx = t2v3.x + translation2.x;
     float ty = t2v3.y + translation2.y;
