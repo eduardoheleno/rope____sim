@@ -9,9 +9,14 @@ const int WINDOW_WIDTH = 1200;
 const int WINDOW_HEIGHT = 800;
 const char WINDOW_TITLE[] = "Rope simulation";
 
+const float TARGET_DISTANCE = 150.0f;
+const float FORCE_MAGNITUDE = 0.2f;
+const float FRICTION = 0.999f;
+
 struct RopeNode {
     float x;
     float y;
+    Vector2 velocity;
     struct RopeNode *nextNode;
 };
 
@@ -85,12 +90,16 @@ void test_func(struct RopeNode **node) {
     struct RopeNode *head = malloc(sizeof(struct RopeNode));
     struct RopeNode *tail = malloc(sizeof(struct RopeNode));
 
-    head->x = 400;
+    Vector2 defaultVelocity = { 0.0f, 0.0f };
+
+    head->x = 300;
     head->y = 400;
+    head->velocity = defaultVelocity;
+    head->nextNode = NULL;
 
     tail->x = 300;
     tail->y = 300;
-
+    tail->velocity = defaultVelocity;
     tail->nextNode = head;
 
     *node = tail;
@@ -102,9 +111,47 @@ void head_update(struct RopeNode **tail) {
     (*tail)->nextNode->x = mousePosition.x;
     (*tail)->nextNode->y = mousePosition.y;
 
-    float distance = distance_between_adjacent_nodes((*tail));
+    float dx = (*tail)->nextNode->x - (*tail)->x;
+    float dy = (*tail)->nextNode->y - (*tail)->y;
+    float distance = sqrtf((dx*dx) + (dy*dy));
 
-    // TODO apply forces to tail.
+    if (distance > TARGET_DISTANCE) {
+        float forceDirectionX = dx/distance;
+        float forceDirectionY = dy/distance;
+
+        float forceX = forceDirectionX*FORCE_MAGNITUDE;
+        float forceY = forceDirectionY*FORCE_MAGNITUDE;
+
+        (*tail)->velocity.x = forceX;
+        (*tail)->velocity.y = forceY;
+    }
+
+    printf("vX: %f\n", (*tail)->velocity.x);
+    printf("vY: %f\n", (*tail)->velocity.y);
+
+    (*tail)->velocity.x *= FRICTION;
+    (*tail)->velocity.y *= FRICTION;
+
+    (*tail)->x += (*tail)->velocity.x;
+    (*tail)->y += (*tail)->velocity.y;
+
+    /* float distance = distance_between_adjacent_nodes((*tail)); */
+    /* float angleDegrees = angle_between_adjacent_nodes((*tail)); */
+    /* float angleRadians = angleDegrees*DEG2RAD; */
+
+    /* float forceX = FORCE_MAGNITUDE*cosf(angleRadians); */
+    /* float forceY = FORCE_MAGNITUDE*sinf(angleRadians); */
+
+    /* if (distance > TARGET_DISTANCE) { */
+    /*     (*tail)->velocity.x += forceX; */
+    /*     (*tail)->velocity.y += forceY; */
+    /* } */
+
+    /* (*tail)->x += (*tail)->velocity.x; */
+    /* (*tail)->y += (*tail)->velocity.y; */
+
+    /* printf("velocityX: %f\n", (*tail)->velocity.x); */
+    /* printf("velocityY: %f\n", (*tail)->velocity.y); */
 }
 
 int main() {
