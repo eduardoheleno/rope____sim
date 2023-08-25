@@ -10,7 +10,7 @@ const int WINDOW_HEIGHT = 800;
 const char WINDOW_TITLE[] = "Rope simulation";
 
 const float TARGET_DISTANCE = 150.0f;
-const float FORCE_MAGNITUDE = 0.2f;
+const float FORCE_MAGNITUDE = 0.15f;
 const float FRICTION = 0.999f;
 
 struct RopeNode {
@@ -88,7 +88,9 @@ void render_rope_nodes(struct RopeNode *node) {
 
 void test_func(struct RopeNode **node) {
     struct RopeNode *head = malloc(sizeof(struct RopeNode));
-    struct RopeNode *tail = malloc(sizeof(struct RopeNode));
+    struct RopeNode *tail1 = malloc(sizeof(struct RopeNode));
+    struct RopeNode *tail2 = malloc(sizeof(struct RopeNode));
+    struct RopeNode *tail3 = malloc(sizeof(struct RopeNode));
 
     Vector2 defaultVelocity = { 0.0f, 0.0f };
 
@@ -97,62 +99,66 @@ void test_func(struct RopeNode **node) {
     head->velocity = defaultVelocity;
     head->nextNode = NULL;
 
-    tail->x = 300;
-    tail->y = 300;
-    tail->velocity = defaultVelocity;
-    tail->nextNode = head;
+    tail1->x = 300;
+    tail1->y = 300;
+    tail1->velocity = defaultVelocity;
+    tail1->nextNode = head;
 
-    *node = tail;
+    tail2->x = 500;
+    tail2->x = 500;
+    tail2->velocity = defaultVelocity;
+    tail2->nextNode = tail1;
+
+    tail3->x = 500;
+    tail3->x = 500;
+    tail3->velocity = defaultVelocity;
+    tail3->nextNode = tail2;
+
+    *node = tail3;
 }
 
 void head_update(struct RopeNode **tail) {
-    Vector2 mousePosition = GetMousePosition();
+    struct RopeNode *firstNodeBuffer = (*tail);
 
-    (*tail)->nextNode->x = mousePosition.x;
-    (*tail)->nextNode->y = mousePosition.y;
+    while ((*tail) != NULL) {
+        if ((*tail)->nextNode == NULL) {
+            Vector2 mousePosition = GetMousePosition();
 
-    float dx = (*tail)->nextNode->x - (*tail)->x;
-    float dy = (*tail)->nextNode->y - (*tail)->y;
-    float distance = sqrtf((dx*dx) + (dy*dy));
+            (*tail)->x = mousePosition.x;
+            (*tail)->y = mousePosition.y;
+        } else {
 
-    if (distance > TARGET_DISTANCE) {
-        float forceDirectionX = dx/distance;
-        float forceDirectionY = dy/distance;
+            float dx = (*tail)->nextNode->x - (*tail)->x;
+            float dy = (*tail)->nextNode->y - (*tail)->y;
+            float distance = sqrtf((dx*dx) + (dy*dy));
 
-        float forceX = forceDirectionX*FORCE_MAGNITUDE;
-        float forceY = forceDirectionY*FORCE_MAGNITUDE;
+            if (distance > TARGET_DISTANCE) {
+                float forceDirectionX = dx/distance;
+                float forceDirectionY = dy/distance;
 
-        (*tail)->velocity.x = forceX;
-        (*tail)->velocity.y = forceY;
+                float forceX = forceDirectionX*FORCE_MAGNITUDE;
+                float forceY = forceDirectionY*FORCE_MAGNITUDE;
+
+                (*tail)->velocity.x = forceX;
+                (*tail)->velocity.y = forceY;
+            }
+
+            (*tail)->velocity.x *= FRICTION;
+            (*tail)->velocity.y *= FRICTION;
+
+            (*tail)->x += (*tail)->velocity.x;
+            (*tail)->y += (*tail)->velocity.y;
+        }
+
+        (*tail) = (*tail)->nextNode;
     }
 
-    printf("vX: %f\n", (*tail)->velocity.x);
-    printf("vY: %f\n", (*tail)->velocity.y);
-
-    (*tail)->velocity.x *= FRICTION;
-    (*tail)->velocity.y *= FRICTION;
-
-    (*tail)->x += (*tail)->velocity.x;
-    (*tail)->y += (*tail)->velocity.y;
-
-    /* float distance = distance_between_adjacent_nodes((*tail)); */
-    /* float angleDegrees = angle_between_adjacent_nodes((*tail)); */
-    /* float angleRadians = angleDegrees*DEG2RAD; */
-
-    /* float forceX = FORCE_MAGNITUDE*cosf(angleRadians); */
-    /* float forceY = FORCE_MAGNITUDE*sinf(angleRadians); */
-
-    /* if (distance > TARGET_DISTANCE) { */
-    /*     (*tail)->velocity.x += forceX; */
-    /*     (*tail)->velocity.y += forceY; */
-    /* } */
-
-    /* (*tail)->x += (*tail)->velocity.x; */
-    /* (*tail)->y += (*tail)->velocity.y; */
-
-    /* printf("velocityX: %f\n", (*tail)->velocity.x); */
-    /* printf("velocityY: %f\n", (*tail)->velocity.y); */
+    (*tail) = firstNodeBuffer;
 }
+
+// TODO: refac names
+// TODO: define constants using #define
+// TODO: add acceleration between rope nodes
 
 int main() {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
@@ -161,49 +167,18 @@ int main() {
     test_func(&firstNode);
 
     while(!WindowShouldClose()) {
-        BeginDrawing();
-        ClearBackground(BLACK);
-
         head_update(&firstNode);
 
-        /* if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) { */
-        /*     Vector2 mousePosition = GetMousePosition(); */
+        BeginDrawing();
 
-        /*     if (firstNode == NULL) { */
-        /*         firstNode = malloc(sizeof(struct RopeNode)); */
-
-        /*         firstNode->x = mousePosition.x; */
-        /*         firstNode->y = mousePosition.y; */
-        /*         firstNode->nextNode = NULL; */
-
-        /*         /\* system("clear"); *\/ */
-        /*         /\* print_list(firstNode); *\/ */
-        /*     } else { */
-        /*         struct RopeNode *lastNode = get_last_rope_node(firstNode); */
-        /*         struct RopeNode *newNode = malloc(sizeof(struct RopeNode)); */
-
-        /*         newNode->x = mousePosition.x; */
-        /*         newNode->y = mousePosition.y; */
-        /*         newNode->nextNode = NULL; */
-
-        /*         lastNode->nextNode = newNode; */
-
-        /*         /\* system("clear"); *\/ */
-        /*         /\* print_list(firstNode); *\/ */
-        /*     } */
-        /* } */
-
-        /* if (IsKeyPressed(KEY_C)) { */
-        /*     clear_nodes(firstNode); */
-        /*     firstNode = NULL; */
-        /* } */
-
+        ClearBackground(BLACK);
         render_rope_nodes(firstNode);
 
         EndDrawing();
     }
 
-    free(firstNode);
+    clear_nodes(firstNode);
+
     CloseWindow();
 
     return 0;
