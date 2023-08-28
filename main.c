@@ -5,13 +5,13 @@
 #include "raylib.h"
 #include "custom_rendering.h"
 
-const int WINDOW_WIDTH = 1200;
-const int WINDOW_HEIGHT = 800;
-const char WINDOW_TITLE[] = "Rope simulation";
+#define WINDOW_WIDTH 1200
+#define WINDOW_HEIGHT 800
+#define WINDOW_TITLE "Rope simulation"
 
-const float TARGET_DISTANCE = 150.0f;
-const float FORCE_MAGNITUDE = 0.15f;
-const float FRICTION = 0.999f;
+#define TARGET_DISTANCE 150.0f
+#define FORCE_MAGNITUDE 0.15f
+#define FRICTION 0.999f
 
 struct RopeNode {
     float x;
@@ -19,16 +19,6 @@ struct RopeNode {
     Vector2 velocity;
     struct RopeNode *nextNode;
 };
-
-struct RopeNode *get_last_rope_node(struct RopeNode *node) {
-    struct RopeNode *nodeBuffer = node;
-
-    while (nodeBuffer->nextNode != NULL) {
-        nodeBuffer = nodeBuffer->nextNode;
-    }
-
-    return nodeBuffer;
-}
 
 void clear_nodes(struct RopeNode *node) {
     struct RopeNode *nodeBuffer = node;
@@ -86,50 +76,44 @@ void render_rope_nodes(struct RopeNode *node) {
     }
 }
 
-void test_func(struct RopeNode **node) {
+void alloc_rope_nodes(struct RopeNode **node, int nodes_qtd) {
     struct RopeNode *head = malloc(sizeof(struct RopeNode));
-    struct RopeNode *tail1 = malloc(sizeof(struct RopeNode));
-    struct RopeNode *tail2 = malloc(sizeof(struct RopeNode));
-    struct RopeNode *tail3 = malloc(sizeof(struct RopeNode));
+    struct RopeNode *nextNodeBuffer = malloc(sizeof(struct RopeNode));
+    nextNodeBuffer = head;
 
     Vector2 defaultVelocity = { 0.0f, 0.0f };
 
     head->x = 300;
-    head->y = 400;
+    head->y = 300;
     head->velocity = defaultVelocity;
     head->nextNode = NULL;
 
-    tail1->x = 300;
-    tail1->y = 300;
-    tail1->velocity = defaultVelocity;
-    tail1->nextNode = head;
+    for (int i = 0; i < nodes_qtd; i++) {
+        struct RopeNode *tail = malloc(sizeof(struct RopeNode));
+        tail->x = 300;
+        tail->y = 300;
+        tail->velocity = defaultVelocity;
+        tail->nextNode = nextNodeBuffer;
 
-    tail2->x = 500;
-    tail2->x = 500;
-    tail2->velocity = defaultVelocity;
-    tail2->nextNode = tail1;
+        nextNodeBuffer = tail;
+    }
 
-    tail3->x = 500;
-    tail3->x = 500;
-    tail3->velocity = defaultVelocity;
-    tail3->nextNode = tail2;
-
-    *node = tail3;
+    *node = nextNodeBuffer;
 }
 
-void head_update(struct RopeNode **tail) {
-    struct RopeNode *firstNodeBuffer = (*tail);
+void rope_frame(struct RopeNode **ropeNode) {
+    struct RopeNode *firstNodeBuffer = (*ropeNode);
 
-    while ((*tail) != NULL) {
-        if ((*tail)->nextNode == NULL) {
+    while ((*ropeNode) != NULL) {
+        if ((*ropeNode)->nextNode == NULL) {
             Vector2 mousePosition = GetMousePosition();
 
-            (*tail)->x = mousePosition.x;
-            (*tail)->y = mousePosition.y;
+            (*ropeNode)->x = mousePosition.x;
+            (*ropeNode)->y = mousePosition.y;
         } else {
 
-            float dx = (*tail)->nextNode->x - (*tail)->x;
-            float dy = (*tail)->nextNode->y - (*tail)->y;
+            float dx = (*ropeNode)->nextNode->x - (*ropeNode)->x;
+            float dy = (*ropeNode)->nextNode->y - (*ropeNode)->y;
             float distance = sqrtf((dx*dx) + (dy*dy));
 
             if (distance > TARGET_DISTANCE) {
@@ -139,35 +123,33 @@ void head_update(struct RopeNode **tail) {
                 float forceX = forceDirectionX*FORCE_MAGNITUDE;
                 float forceY = forceDirectionY*FORCE_MAGNITUDE;
 
-                (*tail)->velocity.x = forceX;
-                (*tail)->velocity.y = forceY;
+                (*ropeNode)->velocity.x = forceX;
+                (*ropeNode)->velocity.y = forceY;
             }
 
-            (*tail)->velocity.x *= FRICTION;
-            (*tail)->velocity.y *= FRICTION;
+            (*ropeNode)->velocity.x *= FRICTION;
+            (*ropeNode)->velocity.y *= FRICTION;
 
-            (*tail)->x += (*tail)->velocity.x;
-            (*tail)->y += (*tail)->velocity.y;
+            (*ropeNode)->x += (*ropeNode)->velocity.x;
+            (*ropeNode)->y += (*ropeNode)->velocity.y;
         }
 
-        (*tail) = (*tail)->nextNode;
+        (*ropeNode) = (*ropeNode)->nextNode;
     }
 
-    (*tail) = firstNodeBuffer;
+    (*ropeNode) = firstNodeBuffer;
 }
 
-// TODO: refac names
-// TODO: define constants using #define
 // TODO: add acceleration between rope nodes
 
 int main() {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
 
     struct RopeNode *firstNode = NULL;
-    test_func(&firstNode);
+    alloc_rope_nodes(&firstNode, 3);
 
     while(!WindowShouldClose()) {
-        head_update(&firstNode);
+        rope_frame(&firstNode);
 
         BeginDrawing();
 
@@ -178,7 +160,6 @@ int main() {
     }
 
     clear_nodes(firstNode);
-
     CloseWindow();
 
     return 0;
