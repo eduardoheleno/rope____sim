@@ -10,8 +10,7 @@
 #define WINDOW_TITLE "Rope simulation"
 
 #define TARGET_DISTANCE 150.0f
-#define FORCE_MAGNITUDE 0.15f
-#define FRICTION 0.999f
+#define ELASTICITY 1000.0f
 
 struct RopeNode {
     float x;
@@ -111,24 +110,20 @@ void rope_frame(struct RopeNode **ropeNode) {
             (*ropeNode)->x = mousePosition.x;
             (*ropeNode)->y = mousePosition.y;
         } else {
-
             float dx = (*ropeNode)->nextNode->x - (*ropeNode)->x;
             float dy = (*ropeNode)->nextNode->y - (*ropeNode)->y;
             float distance = sqrtf((dx*dx) + (dy*dy));
 
-            if (distance > TARGET_DISTANCE) {
+            if (distance) {
                 float forceDirectionX = dx/distance;
                 float forceDirectionY = dy/distance;
 
-                float forceX = forceDirectionX*FORCE_MAGNITUDE;
-                float forceY = forceDirectionY*FORCE_MAGNITUDE;
+                float forceX = (forceDirectionX*distance)/ELASTICITY;
+                float forceY = (forceDirectionY*distance)/ELASTICITY;
 
                 (*ropeNode)->velocity.x = forceX;
                 (*ropeNode)->velocity.y = forceY;
             }
-
-            (*ropeNode)->velocity.x *= FRICTION;
-            (*ropeNode)->velocity.y *= FRICTION;
 
             (*ropeNode)->x += (*ropeNode)->velocity.x;
             (*ropeNode)->y += (*ropeNode)->velocity.y;
@@ -140,7 +135,7 @@ void rope_frame(struct RopeNode **ropeNode) {
     (*ropeNode) = firstNodeBuffer;
 }
 
-// TODO: add acceleration between rope nodes
+// TODO: stop velocity before tail reaches the center of the head
 
 int main() {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
