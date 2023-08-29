@@ -5,12 +5,14 @@
 #include "raylib.h"
 #include "custom_rendering.h"
 
-#define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 800
+#define WINDOW_WIDTH 1900
+#define WINDOW_HEIGHT 1200
 #define WINDOW_TITLE "Rope simulation"
 
-#define TARGET_DISTANCE 150.0f
-#define ELASTICITY 1000.0f
+#define ROPE_NODES 3
+
+#define TARGET_DISTANCE 100.0f
+#define ELASTICITY 10.0f
 
 struct RopeNode {
     float x;
@@ -28,18 +30,6 @@ void clear_nodes(struct RopeNode *node) {
         free(nodeBuffer);
 
         nodeBuffer = nextNodeBuffer;
-    }
-}
-
-void print_list(struct RopeNode *firstNode) {
-    system("clear");
-    struct RopeNode *nodeBuffer = firstNode;
-
-    while (nodeBuffer != NULL) {
-        printf("X: %f\n", nodeBuffer->x);
-        printf("Y: %f\n", nodeBuffer->y);
-
-        nodeBuffer = nodeBuffer->nextNode;
     }
 }
 
@@ -114,15 +104,18 @@ void rope_frame(struct RopeNode **ropeNode) {
             float dy = (*ropeNode)->nextNode->y - (*ropeNode)->y;
             float distance = sqrtf((dx*dx) + (dy*dy));
 
-            if (distance) {
+            if (distance >= TARGET_DISTANCE) {
                 float forceDirectionX = dx/distance;
                 float forceDirectionY = dy/distance;
 
-                float forceX = (forceDirectionX*distance)/ELASTICITY;
-                float forceY = (forceDirectionY*distance)/ELASTICITY;
+                float forceX = (forceDirectionX*(distance/TARGET_DISTANCE))/ELASTICITY;
+                float forceY = (forceDirectionY*(distance/TARGET_DISTANCE))/ELASTICITY;
 
                 (*ropeNode)->velocity.x = forceX;
                 (*ropeNode)->velocity.y = forceY;
+            } else {
+                (*ropeNode)->velocity.x = 0.0f;
+                (*ropeNode)->velocity.y = 0.0f;
             }
 
             (*ropeNode)->x += (*ropeNode)->velocity.x;
@@ -135,13 +128,11 @@ void rope_frame(struct RopeNode **ropeNode) {
     (*ropeNode) = firstNodeBuffer;
 }
 
-// TODO: stop velocity before tail reaches the center of the head
-
 int main() {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
 
     struct RopeNode *firstNode = NULL;
-    alloc_rope_nodes(&firstNode, 3);
+    alloc_rope_nodes(&firstNode, ROPE_NODES);
 
     while(!WindowShouldClose()) {
         rope_frame(&firstNode);
